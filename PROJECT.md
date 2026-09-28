@@ -1,6 +1,6 @@
 # Stella - Obsidian AI Chat Plugin
 
-**Version:** 0.1.0
+**Version:** 0.1.1
 **Author:** PoweredbyPugs
 **Minimum Obsidian Version:** 0.15.0
 
@@ -28,6 +28,8 @@ Full MCP support enables:
 - Auto-discovery of available MCP servers
 - Tool calls and function execution through MCP
 - Server management UI with connection status indicators
+- **Resource browsing** - View and load MCP resources (e.g., natal charts, reference data)
+- Resource content fetching and injection into chat context
 
 ### Conversation Management
 
@@ -156,8 +158,20 @@ StellaPlugin (main.ts)
 | Command | Description |
 |---------|-------------|
 | Open Stella Chat | Opens the chat view in the sidebar |
+| `/name` | Rename current conversation |
+| `/new` | Start a new conversation |
+| `/del` | Delete current conversation |
+| `/history` | Show conversation history |
+| `/sys` | Load a system prompt from file |
+| `/sysclear` | Clear the current system prompt |
 | `/model` | Load a mental model from file |
 | `/modelclear` | Clear the current mental model |
+| `/mcp` | Open MCP server selector (tools, prompts, resources) |
+| `/mcpclear` | Clear active MCP connections |
+| `/clear` | Clear all context |
+| `/hide` | Toggle header visibility |
+| `/settings` | Open plugin settings |
+| `/help` | Show available commands |
 
 ## Development
 
@@ -186,6 +200,10 @@ Styles follow BEM-like naming with `stella-` prefix:
 
 ## Roadmap
 
+### Near-term
+- [ ] File picker for settings paths (background image, loading image, system prompts folder, mental models folder)
+
+### Future
 - [ ] Semantic search integration
 - [ ] Embedding-based note retrieval
 - [ ] Conversation export/import
@@ -193,10 +211,27 @@ Styles follow BEM-like naming with `stella-` prefix:
 - [ ] Voice input/output
 - [ ] Plugin API for extensions
 
+## Changelog
+
+### v0.1.1 (2026-01-22)
+- Added MCP Resources support in the `/mcp` selector modal
+- Resources now displayed alongside Tools and Prompts
+- Click a resource to fetch and load its content into chat
+- Added `refreshServerResources` method for on-demand resource discovery
+- Fixed `/name` command not working in some cases
+
+### v0.1.0
+- Initial release with multi-provider LLM support
+- MCP integration with tools and prompts
+- Conversation management
+- System prompts and mental models
+- Note context integration
+- Custom background and UI theming
+
 ## License
 
 See repository for license information.
 
 ---
 
-*Generated for Stella v0.1.0*
+*Generated for Stella v0.1.1*
