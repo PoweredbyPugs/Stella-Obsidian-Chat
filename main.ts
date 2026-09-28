@@ -474,6 +474,10 @@ class StellaChatView extends ItemView {
             cls: 'stella-note-indicator'
         });
         this.updateMCPIndicator();
+        // Initialize the note indicator too — updateContextIndicator() ran
+        // before this element existed (its update early-returned), and an
+        // uninitialized indicator renders as an empty dot above the input.
+        this.updateNoteIndicator();
 
         // Event listeners for input only
         this.chatInput.addEventListener('keydown', (e) => {
@@ -2787,6 +2791,14 @@ class StellaChatView extends ItemView {
         this.currentMentalModel = null;
         this.currentMentalModelFilename = null;
         this.conversationNameInput.value = dateTitle;
+
+        // Refresh the input-area indicators so cleared state (system prompt,
+        // mental model) doesn't leave stale icons hanging into the new chat.
+        // Each update no-ops if its element doesn't exist yet.
+        this.updateSystemPromptIndicator();
+        this.updateMentalModelIndicator();
+        this.updateMCPIndicator();
+        this.updateNoteIndicator();
     }
 
     // Check if conversation title is a default date format (YYYY-MM-DD)
@@ -4773,6 +4785,7 @@ class StellaSettingTab extends PluginSettingTab {
                 .addOption('lmstudio', 'LM Studio (Local)')
                 .addOption('custom', 'Custom API')
                 .addOption('openclaw', 'OpenClaw (Robin)')
+                .addOption('hermes', 'Hermes Agent (Nous)')
                 .setValue(this.plugin.settings.provider)
                 .onChange(async (value) => {
                     this.plugin.settings.provider = value;
@@ -4909,6 +4922,28 @@ class StellaSettingTab extends PluginSettingTab {
 
             containerEl.createEl('p', {
                 text: '🌙 OpenClaw connects via WebSocket for full agent integration — persistent session, native tools, memory, and MCP servers.',
+                cls: 'setting-item-description'
+            });
+        }
+
+        if (this.plugin.settings.provider === 'hermes') {
+            new Setting(containerEl)
+                .setName('Hermes Dashboard URL')
+                .setDesc('URL of the running Hermes Agent dashboard (started with `hermes dashboard`)')
+                .addText(text => text
+                    .setPlaceholder('http://127.0.0.1:9119')
+                    .setValue(this.plugin.settings.hermesUrl)
+                    .onChange(async (value) => {
+                        this.plugin.settings.hermesUrl = value;
+                        await this.plugin.saveSettings();
+                    }));
+
+            containerEl.createEl('p', {
+                text: '⚡ Hermes Agent (Nous Research) is a full agent, not a raw model — it brings its own model routing, tools, skills, and memory. Stella sends your message over the dashboard\'s WebSocket and streams the reply.',
+                cls: 'setting-item-description'
+            });
+            containerEl.createEl('p', {
+                text: 'Setup: pip install \'hermes-agent[web,pty]\', then run `hermes dashboard`. Local (127.0.0.1) needs no auth; remote dashboards use session-cookie auth that Stella can\'t perform, so keep it on localhost.',
                 cls: 'setting-item-description'
             });
         }
@@ -5358,6 +5393,14 @@ class StellaSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     }
                     return ['openclaw:main'];
+                case 'hermes':
+                    // Hermes routes models itself; the sentinel means "use
+                    // the agent's configured model".
+                    if (!this.plugin.settings.model || this.plugin.settings.model === '') {
+                        this.plugin.settings.model = 'hermes:agent';
+                        await this.plugin.saveSettings();
+                    }
+                    return ['hermes:agent'];
                 default:
                     return [];
             }

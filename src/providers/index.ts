@@ -9,6 +9,7 @@ export { OllamaProvider } from './ollama';
 export { LMStudioProvider } from './lmstudio';
 export { CustomAPIProvider } from './custom';
 export { OpenClawProvider } from './openclaw';
+export { HermesProvider, HERMES_DEFAULT_MODEL } from './hermes';
 
 // Import for factory
 import { LLMProvider } from './types';
@@ -19,6 +20,7 @@ import { OllamaProvider } from './ollama';
 import { LMStudioProvider } from './lmstudio';
 import { CustomAPIProvider } from './custom';
 import { OpenClawProvider } from './openclaw';
+import { HermesProvider } from './hermes';
 
 // Provider registry
 const providers: Record<string, LLMProvider> = {
@@ -29,6 +31,7 @@ const providers: Record<string, LLMProvider> = {
     lmstudio: new LMStudioProvider(),
     custom: new CustomAPIProvider(),
     openclaw: new OpenClawProvider(),
+    hermes: new HermesProvider(),
 };
 
 // Factory function to get provider by name

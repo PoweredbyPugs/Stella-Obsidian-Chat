@@ -563,7 +563,10 @@
     border-radius: 4px;
     z-index: 10;
     pointer-events: auto; /* Enable hover and click events */
-    display: flex;
+    /* Hidden until JS gives it content — an empty indicator with a visible
+       background renders as a stray dot above the input. JS toggles display
+       inline once notes are loaded. */
+    display: none;
     align-items: center;
     justify-content: center;
     cursor: pointer;
