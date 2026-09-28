@@ -96,6 +96,7 @@ export interface StellaSettings {
     lmStudioBaseUrl: string;
     customApiUrl: string;
     customApiKey: string;
+    openrouterApiKey: string;
     // Hermes Agent (Nous Research) dashboard URL — started with
     // `hermes dashboard`, default http://127.0.0.1:9119. Chat goes over
     // its /api/ws WebSocket. Points at the default profile's dashboard;
@@ -148,6 +149,7 @@ export const DEFAULT_SETTINGS: StellaSettings = {
     lmStudioBaseUrl: 'http://localhost:1234',
     customApiUrl: '',
     customApiKey: '',
+    openrouterApiKey: '',
     hermesUrl: 'http://127.0.0.1:9119',
     model: '',
     maxTokens: 4000,

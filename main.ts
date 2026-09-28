@@ -42,7 +42,8 @@ import {
     ProviderContext,
     StreamCallbacks,
     LLMProviderWithMCP,
-    MCPContext
+    MCPContext,
+    listOpenRouterModels
 } from './src/providers';
 
 export default class StellaPlugin extends Plugin {
@@ -2433,6 +2434,9 @@ class StellaChatView extends ItemView {
                 case 'lmstudio':
                     models = await this.fetchLMStudioModels();
                     break;
+                case 'openrouter':
+                    models = await listOpenRouterModels();
+                    break;
                 default:
                     return [];
             }
@@ -3354,7 +3358,10 @@ class StellaChatView extends ItemView {
                             provider === 'openai' ? 'openai' :
                             provider === 'google' ? 'google' :
                             provider === 'ollama' ? 'ollama' :
-                            provider === 'lmstudio' ? 'lm-studio' : 'custom';
+                            provider === 'lmstudio' ? 'lm-studio' :
+                            provider === 'openrouter' ? 'openrouter' :
+                            provider === 'openclaw' ? 'openclaw' :
+                            provider === 'hermes' ? 'hermes' : 'custom';
 
         if (!model || model.trim() === '') {
             container.textContent = `${providerName}: no model selected`;
@@ -4781,6 +4788,7 @@ class StellaSettingTab extends PluginSettingTab {
                 .addOption('anthropic', 'Anthropic (Claude)')
                 .addOption('openai', 'OpenAI (GPT)')
                 .addOption('google', 'Google (Gemini)')
+                .addOption('openrouter', 'OpenRouter')
                 .addOption('ollama', 'Ollama (Local)')
                 .addOption('lmstudio', 'LM Studio (Local)')
                 .addOption('custom', 'Custom API')
@@ -4842,6 +4850,19 @@ class StellaSettingTab extends PluginSettingTab {
                         this.plugin.settings.googleApiKey = value;
                         await this.plugin.saveSettings();
                         this.refreshModelDropdown();
+                    }));
+        }
+
+        if (this.plugin.settings.provider === 'openrouter') {
+            new Setting(containerEl)
+                .setName('OpenRouter API Key')
+                .setDesc('Enter your OpenRouter API key (openrouter.ai/keys)')
+                .addText(text => text
+                    .setPlaceholder('sk-or-...')
+                    .setValue(this.plugin.settings.openrouterApiKey)
+                    .onChange(async (value) => {
+                        this.plugin.settings.openrouterApiKey = value.trim();
+                        await this.plugin.saveSettings();
                     }));
         }
 
@@ -5386,6 +5407,8 @@ class StellaSettingTab extends PluginSettingTab {
                     return await this.fetchOllamaModels();
                 case 'lmstudio':
                     return await this.fetchLMStudioModels();
+                case 'openrouter':
+                    return await listOpenRouterModels();
                 case 'openclaw':
                     // Auto-set model for OpenClaw (only one option)
                     if (!this.plugin.settings.model || this.plugin.settings.model === '') {
@@ -5565,13 +5588,18 @@ class StellaSettingTab extends PluginSettingTab {
                 if (models.length === 0) {
                     dropdown.addOption('', `No ${this.plugin.settings.provider} models found`);
                 } else {
+                    // A model left over from another provider isn't in this
+                    // list; show a prompt instead of silently displaying the
+                    // first entry as if it were selected.
+                    if (!models.includes(this.plugin.settings.model)) {
+                        dropdown.addOption('', 'Pick a model…');
+                    }
                     models.forEach(model => {
-                        console.log(`Adding model option: ${model}`);
                         dropdown.addOption(model, model);
                     });
                 }
 
-                dropdown.setValue(this.plugin.settings.model);
+                dropdown.setValue(models.includes(this.plugin.settings.model) ? this.plugin.settings.model : '');
                 console.log(`Set dropdown value to: ${this.plugin.settings.model}`);
             }
             // Method 2: Try direct dropdown element access
