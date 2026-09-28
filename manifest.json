@@ -1,7 +1,7 @@
 {
-  "id": "stella-dev",
+  "id": "stella",
   "name": "Stella",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "minAppVersion": "0.15.0",
   "description": "Advanced AI chat with LLM integration, semantic search, and MCP support",
   "author": "poweredbypugs",

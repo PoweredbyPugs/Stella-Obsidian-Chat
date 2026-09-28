@@ -25,8 +25,8 @@ npm run version
 ## Development Workflow
 
 ### Folder Structure
-- **Stella-dev/** - Development folder (plugin ID: `stella-dev`)
-- **Stella/** - Production folder (plugin ID: `stella`)
+- **Stella-dev/** (vault) - Test copy (plugin ID: `stella-dev`, name "Stella (dev)"). Every build writes `main.js` here, plus a `manifest.json` derived from the repo's with the id/name swapped, plus `styles.css`.
+- **Stella/** (vault) - Live copy (plugin ID: `stella`), synced to other devices via Obsidian Sync. Only `npm run deploy` writes here (`main.js`, `manifest.json`, `styles.css`). Never hand-edit it.
 
 Both folders can coexist in Obsidian. Changes are developed in Stella-dev and deployed to Stella using `npm run deploy`.
 
@@ -105,7 +105,7 @@ Stella-dev/
 │           └── note-selector.ts
 │
 ├── styles.css                 # Plugin styles
-├── manifest.json              # Plugin manifest (ID: stella-dev)
+├── manifest.json              # Plugin manifest (ID: stella — the real plugin)
 ├── package.json               # Dependencies & scripts
 ├── esbuild.config.mjs         # Build configuration
 └── CLAUDE.md                  # This file
