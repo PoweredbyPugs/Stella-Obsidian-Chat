@@ -97,12 +97,11 @@ export interface StellaSettings {
     customApiUrl: string;
     customApiKey: string;
     openrouterApiKey: string;
-    // Hermes Agent (Nous Research) dashboard URL — started with
-    // `hermes dashboard`, default http://127.0.0.1:9119. Chat goes over
-    // its /api/ws WebSocket. Points at the default profile's dashboard;
-    // to target a different agent/profile, run that profile's dashboard
-    // on another port and change this URL.
+    // Hermes Agent (Nous Research) gateway API server — the gateway's
+    // OpenAI-compatible "api_server" platform, default port 8642 (not the
+    // 9119 dashboard). hermesApiKey is the gateway's API_SERVER_KEY.
     hermesUrl: string;
+    hermesApiKey: string;
     model: string;
     maxTokens: number;
     temperature: number;
@@ -150,7 +149,8 @@ export const DEFAULT_SETTINGS: StellaSettings = {
     customApiUrl: '',
     customApiKey: '',
     openrouterApiKey: '',
-    hermesUrl: 'http://127.0.0.1:9119',
+    hermesUrl: 'http://127.0.0.1:8642',
+    hermesApiKey: '',
     model: '',
     maxTokens: 4000,
     temperature: 0.7,

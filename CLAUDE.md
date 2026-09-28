@@ -94,7 +94,9 @@ Stella-dev/
 │   │   ├── ollama.ts          # Ollama local
 │   │   ├── lmstudio.ts        # LM Studio local
 │   │   ├── custom.ts          # Custom OpenAI-compatible
-│   │   └── openclaw.ts        # OpenClaw (Robin) via WebSocket
+│   │   ├── openclaw.ts        # OpenClaw (Robin) via WebSocket
+│   │   ├── openrouter.ts      # OpenRouter (fetch + SSE streaming; public model list)
+│   │   └── hermes.ts          # Hermes Agent via gateway API server (requestUrl, no streaming)
 │   │
 │   └── views/                 # UI components
 │       └── modals/            # Modal dialogs
@@ -229,6 +231,10 @@ const response = await provider.chat(context);
 | LM Studio | Any GGUF model | Yes | Via tools |
 | Custom | OpenAI-compatible | Varies | Via tools |
 | OpenClaw | Robin (via Gateway) | Yes | Native (WebSocket) |
+| OpenRouter | Any OpenRouter model | No | — |
+| Hermes | Hermes Agent (gateway API server, port 8642, `API_SERVER_KEY`) | Yes | Agent's own tools |
+
+**Hermes:** use the gateway's OpenAI-compatible API server, never the 9119 dashboard — the dashboard's WebSocket enforces Host, per-launch token and Origin checks that an outside app can't pass. `requestUrl` sidesteps the API server's CORS allowlist at the cost of streaming.
 
 ## MCP Integration
 

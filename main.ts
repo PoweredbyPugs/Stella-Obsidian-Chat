@@ -43,7 +43,8 @@ import {
     StreamCallbacks,
     LLMProviderWithMCP,
     MCPContext,
-    listOpenRouterModels
+    listOpenRouterModels,
+    listHermesModels
 } from './src/providers';
 
 export default class StellaPlugin extends Plugin {
@@ -196,6 +197,17 @@ export default class StellaPlugin extends Plugin {
             this.settings.backgroundImage = '';
             this.settings.backgroundMode = 'centered';
             this.settings.backgroundOpacity = 0.5;
+        }
+
+        // Hermes moved from the dashboard WebSocket (port 9119) to the
+        // gateway API server (port 8642). Point old dashboard URLs at the
+        // same host's API server and drop the old model sentinel.
+        const hermesUrl = (this.settings.hermesUrl || '').trim();
+        if (/:9119(\/|$)/.test(hermesUrl)) {
+            this.settings.hermesUrl = hermesUrl.replace(/^(wss?|https?):/i, 'http:').replace(/:9119(\/.*)?$/, ':8642');
+        }
+        if (this.settings.model === 'hermes:agent') {
+            this.settings.model = '';
         }
 
         // Ensure conversations array exists
@@ -2436,6 +2448,9 @@ class StellaChatView extends ItemView {
                     break;
                 case 'openrouter':
                     models = await listOpenRouterModels();
+                    break;
+                case 'hermes':
+                    models = await listHermesModels(this.plugin.settings);
                     break;
                 default:
                     return [];
@@ -4949,22 +4964,32 @@ class StellaSettingTab extends PluginSettingTab {
 
         if (this.plugin.settings.provider === 'hermes') {
             new Setting(containerEl)
-                .setName('Hermes Dashboard URL')
-                .setDesc('URL of the running Hermes Agent dashboard (started with `hermes dashboard`)')
+                .setName('Hermes API URL')
+                .setDesc('Address of the Hermes gateway\'s API server (port 8642 by default — not the 9119 dashboard)')
                 .addText(text => text
-                    .setPlaceholder('http://127.0.0.1:9119')
+                    .setPlaceholder('http://127.0.0.1:8642')
                     .setValue(this.plugin.settings.hermesUrl)
                     .onChange(async (value) => {
-                        this.plugin.settings.hermesUrl = value;
+                        this.plugin.settings.hermesUrl = value.trim();
                         await this.plugin.saveSettings();
                     }));
 
+            new Setting(containerEl)
+                .setName('Hermes API Key')
+                .setDesc('The gateway\'s API_SERVER_KEY, from ~/.hermes/.env on the Hermes machine')
+                .addText(text => {
+                    text.inputEl.type = 'password';
+                    text
+                        .setPlaceholder('API_SERVER_KEY')
+                        .setValue(this.plugin.settings.hermesApiKey)
+                        .onChange(async (value) => {
+                            this.plugin.settings.hermesApiKey = value.trim();
+                            await this.plugin.saveSettings();
+                        });
+                });
+
             containerEl.createEl('p', {
-                text: '⚡ Hermes Agent (Nous Research) is a full agent, not a raw model — it brings its own model routing, tools, skills, and memory. Stella sends your message over the dashboard\'s WebSocket and streams the reply.',
-                cls: 'setting-item-description'
-            });
-            containerEl.createEl('p', {
-                text: 'Setup: pip install \'hermes-agent[web,pty]\', then run `hermes dashboard`. Local (127.0.0.1) needs no auth; remote dashboards use session-cookie auth that Stella can\'t perform, so keep it on localhost.',
+                text: '⚡ Hermes Agent (Nous Research) is a full agent, not a raw model — it brings its own model routing, tools, skills, and memory. Replies appear all at once when Hermes finishes, not word by word.',
                 cls: 'setting-item-description'
             });
         }
@@ -5416,14 +5441,16 @@ class StellaSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     }
                     return ['openclaw:main'];
-                case 'hermes':
-                    // Hermes routes models itself; the sentinel means "use
-                    // the agent's configured model".
-                    if (!this.plugin.settings.model || this.plugin.settings.model === '') {
-                        this.plugin.settings.model = 'hermes:agent';
+                case 'hermes': {
+                    // Hermes routes models itself and normally advertises a
+                    // single id; select it automatically.
+                    const hermesModels = await listHermesModels(this.plugin.settings);
+                    if (hermesModels.length > 0 && !hermesModels.includes(this.plugin.settings.model)) {
+                        this.plugin.settings.model = hermesModels[0];
                         await this.plugin.saveSettings();
                     }
-                    return ['hermes:agent'];
+                    return hermesModels;
+                }
                 default:
                     return [];
             }
